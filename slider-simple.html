@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Slider</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #eee;
+        }
+
+        .slider {
+            position: relative;
+            max-inline-size: 36rem;
+            margin-inline: auto;
+            display: grid;
+            grid-template-columns: auto auto auto;
+            grid-template-rows: auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .slider .slide-status {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .slider-window {
+            overflow: hidden;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            display: flex;
+            transition: transform 0.4s ease;
+        }
+
+        .item {
+            min-width: 100%;
+            user-select: none;
+        }
+
+        .item img {
+            width: 100%;
+            vertical-align: bottom;
+        }
+
+        /* arrows */
+
+        .nav {
+            inline-size: 2rem;
+            block-size: 2rem;
+            border: 1px solid #999;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* dots */
+
+        .dots {
+            grid-column: 2;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .dot {
+            inline-size: 1rem;
+            block-size: 1rem;
+            border-radius: 50%;
+            border: 2px solid #222;
+            background: transparent;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .dot:focus {
+            outline: 2px solid;
+        }
+
+        .dot.active {
+            background: #222;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slider">
+        <div class="slide-status" aria-live="polite"></div>
+        <button class="nav prev" aria-label="Slider Previous">&lt;</button>
+
+        <div class="slider-window">
+            <div class="slider-wrapper">
+                <div class="item">
+                    <img src="Tenting.webp" alt="People tenting outdoor at night">
+                </div>
+
+                <div class="item">
+                    <img src="Interior.webp" alt="Interior design">
+                </div>
+
+                <div class="item">
+                    <img src="Penthouse.webp" alt="A nice penthouse">
+                </div>
+            </div>
+        </div>
+
+        <button class="nav next" aria-label="Slider Next">&gt;</button>
+
+        <div class="dots"></div>
+    </div>
+
+    <script>
+        const slider = document.querySelector('.slider');
+
+        if (slider) {
+            const sliderWrapper = slider.querySelector('.slider-wrapper');
+            const slides = slider.querySelectorAll('.item');
+            const prevBtn = slider.querySelector('.prev');
+            const nextBtn = slider.querySelector('.next');
+            const dotsContainer = slider.querySelector('.dots');
+            const sliderStatus = slider.querySelector('.slide-status');
+
+            let currentIndex = 0;
+
+            // cache slide images
+            const slideImages = [...slides].map(slide =>
+                slide.querySelector('img')
+            );
+
+            // create dots
+            const dots = [];
+
+            slides.forEach((_, index) => {
+                const dot = document.createElement('button');
+
+                dot.classList.add('dot');
+                dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+                dot.setAttribute('type', 'button');
+
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                });
+
+                dotsContainer.appendChild(dot);
+                dots.push(dot);
+            });
+
+            // navigation logic
+            function goToSlide(index) {
+                currentIndex = (index + slides.length) % slides.length;
+                updateSlider();
+            }
+
+            // update position
+            function updatePosition() {
+                const offset = slides[currentIndex].offsetLeft;
+
+                sliderWrapper.style.transform =
+                    `translateX(-${offset}px)`;
+            }
+
+            // update dots
+            function updateDots() {
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[currentIndex].classList.add('active');
+            }
+
+            // update screen reader status
+            function updateStatus() {
+                sliderStatus.textContent =
+                    `Slide ${currentIndex + 1} active: ` +
+                    slideImages[currentIndex].alt;
+            }
+
+            // master update
+            function updateSlider() {
+                updatePosition();
+                updateDots();
+                updateStatus();
+            }
+
+            // buttons
+            nextBtn.addEventListener('click', () => {
+                goToSlide(currentIndex + 1);
+            });
+
+            prevBtn.addEventListener('click', () => {
+                goToSlide(currentIndex - 1);
+            });
+
+            // keyboard navigation
+            slider.setAttribute('tabindex', '0');
+
+            slider.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    goToSlide(currentIndex + 1);
+                }
+
+                if (e.key === 'ArrowLeft') {
+                    goToSlide(currentIndex - 1);
+                }
+            });
+
+            // initialize
+            updateSlider();
+        }
+    </script>
+</body>
+
+</html>
